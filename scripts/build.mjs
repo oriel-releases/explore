@@ -13,7 +13,7 @@ const KEY = process.env.UNSPLASH_ACCESS_KEY;
 const API = "https://api.unsplash.com/";
 const PER_SIDE = 300;
 const CALLS_PER_SIDE = 10;
-const EXTRA_CALLS = 3; // per side, only when repeats and small photos left it short
+const EXTRA_CALLS = 4; // per side, only while repeats and small photos leave it short of PER_SIDE
 // Long enough that a photo doesn't come straight back, short enough that the sources below never run dry.
 const SEEN_HOURS = 12;
 
@@ -76,7 +76,6 @@ async function side(orientation, seen) {
   const fits = SIDES[orientation];
   const found = new Map();
   for (let i = 0; i < CALLS_PER_SIDE + EXTRA_CALLS && found.size < PER_SIDE; i++) {
-    if (i >= CALLS_PER_SIDE && found.size >= PER_SIDE * 0.8) break;
     const source = nextSource(orientation);
     let photos;
     try {
