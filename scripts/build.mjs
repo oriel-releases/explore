@@ -1,9 +1,9 @@
 // Builds this hour's Explore feed: Unsplash photo metadata only (no images), the same for every Oriel user.
-// Ten API calls an hour in all, however many people scroll: 150 photos for computers, 150 for phones.
+// About twenty API calls an hour in all, however many people scroll: 300 photos for computers, 300 for phones.
 //
 //   UNSPLASH_ACCESS_KEY=... node scripts/build.mjs <out dir> [previous seen.json]
 //
-// Writes <out>/explore.json (what the apps read) and <out>/seen.json (photo IDs of the last two days, so a photo
+// Writes <out>/explore.json (what the apps read) and <out>/seen.json (photo IDs of the last twelve hours, so a photo
 // doesn't come back for a while).
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -11,10 +11,11 @@ import { join } from "node:path";
 
 const KEY = process.env.UNSPLASH_ACCESS_KEY;
 const API = "https://api.unsplash.com/";
-const PER_SIDE = 150;
-const CALLS_PER_SIDE = 5;
-const EXTRA_CALLS = 2; // per side, only when repeats and small photos left it short
-const SEEN_HOURS = 48;
+const PER_SIDE = 300;
+const CALLS_PER_SIDE = 10;
+const EXTRA_CALLS = 3; // per side, only when repeats and small photos left it short
+// Long enough that a photo doesn't come straight back, short enough that the sources below never run dry.
+const SEEN_HOURS = 12;
 
 // Unsplash's curated topics (page through "popular") and the apps' built-in Interests (page through "relevant").
 const TOPICS = ["wallpapers", "wallpapers", "nature", "travel", "architecture-interior", "textures-patterns",
@@ -36,13 +37,13 @@ const page = (max) => 1 + Math.floor(Math.random() * max);
 function nextSource(orientation) {
   if (Math.random() < 0.4) {
     const topic = pick(TOPICS);
-    return { topic, url: `${API}topics/${topic}/photos?orientation=${orientation}&order_by=popular&per_page=30&page=${page(20)}` };
+    return { topic, url: `${API}topics/${topic}/photos?orientation=${orientation}&order_by=popular&per_page=30&page=${page(50)}` };
   }
   const query = pick(SEARCHES);
   return {
     topic: query,
     url: `${API}search/photos?orientation=${orientation}&content_filter=high&order_by=relevant&per_page=30` +
-      `&page=${page(6)}&query=${encodeURIComponent(query)}`,
+      `&page=${page(10)}&query=${encodeURIComponent(query)}`,
   };
 }
 
