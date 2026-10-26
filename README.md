@@ -1,10 +1,11 @@
 # Oriel Explore feed
 
-The photos on the Explore page of the [Oriel](https://oriel.akbarjon.uz) apps: 300 wallpapers for computers and 300
-for phones, new every hour, the same for everyone.
+The photos on the Explore page of the [Oriel](https://oriel.akbarjon.uz) apps: up to 300 wallpapers for computers and
+300 for phones, new every hour, the same for everyone, each liked at least 500 times on Unsplash.
 
-- `.github/workflows/hourly.yml` runs `scripts/build.mjs` a few minutes past every hour. It makes about twenty Unsplash API
-  calls in all, however many people use the apps, and skips photos shown in the last twelve hours.
+- `.github/workflows/hourly.yml` runs `scripts/build.mjs` a few minutes past every hour. It makes twenty to thirty-six
+  Unsplash API calls in all, however many people use the apps, keeps only photos with 500+ likes, and skips photos
+  shown in the last twelve hours.
 - The result is force-pushed to the `feed` branch (one commit, two files), which the apps read:
   `https://raw.githubusercontent.com/oriel-releases/explore/feed/explore.json`
 - **Metadata only.** No images are stored here: each photo is Unsplash's own API object, trimmed, and the apps load

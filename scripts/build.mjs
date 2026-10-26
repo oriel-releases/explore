@@ -1,5 +1,6 @@
 // Builds this hour's Explore feed: Unsplash photo metadata only (no images), the same for every Oriel user.
-// About twenty API calls an hour in all, however many people scroll: 300 photos for computers, 300 for phones.
+// About twenty to thirty API calls an hour in all, however many people scroll: 300 photos for computers, 300 for
+// phones, each liked at least MIN_LIKES times on Unsplash.
 //
 //   UNSPLASH_ACCESS_KEY=... node scripts/build.mjs <out dir> [previous seen.json]
 //
@@ -13,7 +14,9 @@ const KEY = process.env.UNSPLASH_ACCESS_KEY;
 const API = "https://api.unsplash.com/";
 const PER_SIDE = 300;
 const CALLS_PER_SIDE = 10;
-const EXTRA_CALLS = 4; // per side, only while repeats and small photos leave it short of PER_SIDE
+const EXTRA_CALLS = 8; // per side, only while repeats, small and little-liked photos leave it short of PER_SIDE
+// Only photos people liked: at least this many likes on Unsplash.
+const MIN_LIKES = 500;
 // Long enough that a photo doesn't come straight back, short enough that the sources below never run dry.
 const SEEN_HOURS = 12;
 
@@ -37,7 +40,8 @@ const page = (max) => 1 + Math.floor(Math.random() * max);
 function nextSource(orientation) {
   if (Math.random() < 0.4) {
     const topic = pick(TOPICS);
-    return { topic, url: `${API}topics/${topic}/photos?orientation=${orientation}&order_by=popular&per_page=30&page=${page(50)}` };
+    // The first pages of "popular": deeper ones are mostly photos with few likes.
+    return { topic, url: `${API}topics/${topic}/photos?orientation=${orientation}&order_by=popular&per_page=30&page=${page(25)}` };
   }
   const query = pick(SEARCHES);
   return {
@@ -88,7 +92,7 @@ async function side(orientation, seen) {
     for (const p of photos) {
       // Free photos only (Unsplash+ ones live on plus.unsplash.com and need a licence).
       if (!p?.urls?.raw?.startsWith("https://images.unsplash.com/") || p.premium || p.plus) continue;
-      if (!fits(p) || seen.has(p.id) || found.has(p.id)) continue;
+      if (!fits(p) || (p.likes ?? 0) < MIN_LIKES || seen.has(p.id) || found.has(p.id)) continue;
       found.set(p.id, trim(p, source.topic));
     }
   }
