@@ -24,17 +24,27 @@ jobs:
         with:
           node-version: 22
 
-      - name: Photos shown lately
+      - name: Photos shown lately, and today's live wallpapers
         run: |
-          if git fetch --depth=1 origin feed 2>/dev/null; then git show FETCH_HEAD:seen.json > seen.json || echo '{}' > seen.json
-          else echo '{}' > seen.json; fi
+          if git fetch --depth=1 origin feed 2>/dev/null; then
+            git show FETCH_HEAD:seen.json > seen.json || echo '{}' > seen.json
+            git show FETCH_HEAD:live.json > previous-live.json || echo '{}' > previous-live.json
+          else echo '{}' > seen.json; echo '{}' > previous-live.json; fi
 
       - name: Build this hour's feed
         env:
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
         run: node scripts/build.mjs out seen.json
 
-      # The feed branch holds one commit with the two JSON files, replaced every hour, so the repo never grows.
+      # Once a day (the rest of the day keeps the same list). A failure never stops the photos: yesterday's list stays.
+      - name: Today's live wallpapers
+        continue-on-error: true
+        env:
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          COVERR_API_KEY: ${{ secrets.COVERR_API_KEY }}
+        run: node scripts/live.mjs out previous-live.json
+
+      # The feed branch holds one commit with the JSON files, replaced every hour, so the repo never grows.
       - name: Publish
         working-directory: out
         run: |
@@ -42,5 +52,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add explore.json seen.json
+          if [ -f live.json ]; then git add live.json; fi
           git commit -q -m "Feed for $(date -u +%Y-%m-%dT%H:00Z)"
           git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" feed

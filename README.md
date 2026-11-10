@@ -27,4 +27,26 @@ The photos on the Explore page of the [Oriel](https://oriel.akbarjon.uz) apps: u
 
 A failed hour leaves the previous feed in place; the apps keep showing it.
 
-Secret: `UNSPLASH_ACCESS_KEY` (Oriel's Unsplash key). Run by hand: Actions → Hourly feed → Run workflow.
+## Live wallpapers
+
+The Live side of Explore: up to 300 looping videos (landscape, at least 1920 wide) from **Pixabay** and **Coverr**,
+`live.json` on the same branch, rebuilt **once a day** by `scripts/live.mjs` (about fourteen API calls; the other runs of
+the day keep it, as both sites ask for caching). Metadata only: the apps stream and download the videos from the sites'
+CDNs and credit the author and site. A failed day keeps the previous list, and never stops the photos.
+
+`https://raw.githubusercontent.com/oriel-releases/explore/feed/live.json`
+
+```json
+{
+  "version": 1,
+  "day": "2026-11-10",
+  "videos": [{ "id": "pixabay-71122", "source": "Pixabay", "sourceId": "71122", "title": "Waves, sea, ocean",
+               "author": "…", "authorUrl": "https://pixabay.com/users/…", "pageUrl": "https://pixabay.com/videos/id-71122/",
+               "thumbnailUrl": "…_small.jpg", "posterUrl": "…_large.jpg",
+               "files": [{ "url": "…_tiny.mp4", "width": 1280, "height": 720 }, { "url": "…_large.mp4", "width": 3840, "height": 2160 }],
+               "seconds": 19, "tags": ["waves", "sea", "loop"] }]
+}
+```
+
+Secrets: `UNSPLASH_ACCESS_KEY` (Oriel's Unsplash key), `PIXABAY_API_KEY`, `COVERR_API_KEY` (the live wallpapers' keys).
+Run by hand: Actions → Hourly feed → Run workflow.
